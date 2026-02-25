@@ -1,18 +1,20 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
+import SearchBar from '../components/SearchBar'
+import MovieCard from '../components/MovieCard'
 import { fetchMovieById, fetchMoviesBySearch } from '../services/api'
 
 const featuredMoviePool = [
-  'tt0111161', // Shawshank
-  'tt0068646', // Godfather
-  'tt0468569', // Dark Knight
-  'tt0133093', // Matrix
-  'tt0109830', // Forrest Gump
-  'tt0167260', // LOTR: Return of the King
-  'tt1375666', // Inception
-  'tt6751668', // Parasite
-  'tt0120737', // LOTR: Fellowship
-  'tt0110912', // Pulp Fiction
+  'tt0111161',
+  'tt0068646',
+  'tt0468569',
+  'tt0133093',
+  'tt0109830',
+  'tt0167260',
+  'tt1375666',
+  'tt6751668',
+  'tt0120737',
+  'tt0110912',
 ]
 
 function getRandomIds(pool, count) {
@@ -25,8 +27,9 @@ function HomePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [isSearchMode, setIsSearchMode] = useState(false)
+  const location = useLocation()
 
-  const featuredIds = useMemo(() => getRandomIds(featuredMoviePool, 6), [])
+  const featuredIds = useMemo(() => getRandomIds(featuredMoviePool, 8), [])
 
   useEffect(() => {
     async function loadFeaturedMovies() {
@@ -45,7 +48,7 @@ function HomePage() {
     }
 
     loadFeaturedMovies()
-  }, [featuredIds])
+  }, [featuredIds, location.state?.resetHomeAt])
 
   async function handleSearch(event) {
     event.preventDefault()
@@ -59,7 +62,6 @@ function HomePage() {
       setLoading(true)
       setError('')
       setIsSearchMode(true)
-
       const result = await fetchMoviesBySearch(normalized)
       setMovies(result)
     } catch (err) {
@@ -74,24 +76,12 @@ function HomePage() {
     <section>
       <h2>Discover movies</h2>
 
-      <form className="search-form" onSubmit={handleSearch}>
-        <label htmlFor="movie-search" className="sr-only">
-          Search movies
-        </label>
-        <input
-          id="movie-search"
-          type="text"
-          placeholder="Search by title..."
-          value={queryInput}
-          onChange={(event) => setQueryInput(event.target.value)}
-        />
-        <button type="submit">Search</button>
-      </form>
+      <SearchBar value={queryInput} onChange={setQueryInput} onSubmit={handleSearch} disabled={loading} />
 
-      <p>
+      <p className="search-helper">
         {isSearchMode
-          ? 'Search results from OMDb API.'
-          : 'Random featured movies from OMDb API (refresh page for a new set).'}
+          ? 'Showing your search results from OMDb.'
+          : 'Showing featured movies from OMDb (open Home again to reset).'}
       </p>
 
       {loading && <p>Loading movies...</p>}
@@ -101,16 +91,7 @@ function HomePage() {
       {!loading && !error && movies.length > 0 && (
         <div className="movie-grid">
           {movies.map((movie) => (
-            <article key={movie.imdbID} className="movie-card">
-              {movie.Poster && movie.Poster !== 'N/A' ? (
-                <img src={movie.Poster} alt={`Poster: ${movie.Title}`} className="movie-poster" />
-              ) : (
-                <div className="movie-poster movie-poster-fallback">No poster</div>
-              )}
-              <h3>{movie.Title}</h3>
-              <p>{movie.Year}</p>
-              <Link to={`/movie/${movie.imdbID}`}>See details</Link>
-            </article>
+            <MovieCard key={movie.imdbID} movie={movie} />
           ))}
         </div>
       )}
