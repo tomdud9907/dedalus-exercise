@@ -30,13 +30,13 @@ function saveSubscriber(email) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(nextSubscribers))
 }
 
-function validateEmailFormat(email) {
+function isValidEmailFormat(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 }
 
-function emailExists(email) {
-  const normalized = email.toLowerCase()
-  return readSubscribers().some((entry) => entry.email?.toLowerCase() === normalized)
+function hasSubscribedEmail(email) {
+  const normalisedEmail = email.toLowerCase()
+  return readSubscribers().some((entry) => entry.email?.toLowerCase() === normalisedEmail)
 }
 
 function NewsletterPage() {
@@ -45,17 +45,15 @@ function NewsletterPage() {
   const [errors, setErrors] = useState({})
   const [successMessage, setSuccessMessage] = useState('')
 
-  function handleSubmit(event) {
-    event.preventDefault()
-
+  function validateForm() {
     const nextErrors = {}
-    const normalizedEmail = email.trim()
+    const normalisedEmail = email.trim()
 
-    if (!normalizedEmail) {
+    if (!normalisedEmail) {
       nextErrors.email = 'Email is required.'
-    } else if (!validateEmailFormat(normalizedEmail)) {
+    } else if (!isValidEmailFormat(normalisedEmail)) {
       nextErrors.email = 'Please enter a valid email address.'
-    } else if (emailExists(normalizedEmail)) {
+    } else if (hasSubscribedEmail(normalisedEmail)) {
       nextErrors.email = 'This email is already subscribed.'
     }
 
@@ -63,6 +61,19 @@ function NewsletterPage() {
       nextErrors.consent = 'You must agree to receive newsletter emails.'
     }
 
+    return { nextErrors, normalisedEmail }
+  }
+
+  function resetForm() {
+    setEmail('')
+    setConsent(false)
+    setErrors({})
+  }
+
+  function handleSubmit(event) {
+    event.preventDefault()
+
+    const { nextErrors, normalisedEmail } = validateForm()
     setErrors(nextErrors)
 
     if (Object.keys(nextErrors).length > 0) {
@@ -70,11 +81,9 @@ function NewsletterPage() {
       return
     }
 
-    saveSubscriber(normalizedEmail)
+    saveSubscriber(normalisedEmail)
     setSuccessMessage('Thanks! You have been subscribed to the newsletter.')
-    setEmail('')
-    setConsent(false)
-    setErrors({})
+    resetForm()
   }
 
   return (

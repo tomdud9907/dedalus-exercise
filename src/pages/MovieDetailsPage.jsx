@@ -1,30 +1,21 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import useAsyncState from '../hooks/useAsyncState'
 import { fetchMovieById } from '../services/api'
 import './MovieDetailsPage.css'
 
 function MovieDetailsPage() {
   const { id } = useParams()
-  const [movie, setMovie] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const {
+    data: movie,
+    loading,
+    error,
+    run,
+  } = useAsyncState(null)
 
   useEffect(() => {
-    async function loadMovie() {
-      try {
-        setLoading(true)
-        setError('')
-        const data = await fetchMovieById(id)
-        setMovie(data)
-      } catch (err) {
-        setError(err.message)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    loadMovie()
-  }, [id])
+    run(() => fetchMovieById(id)).catch(() => {})
+  }, [id, run])
 
   return (
     <section className="details-page">
@@ -48,13 +39,13 @@ function MovieDetailsPage() {
           <div className="details-card__content">
             <h2>{movie.Title}</h2>
             <p className="details-card__subtitle">
-              {movie.Year} • {movie.Runtime} • {movie.Rated}
+              {movie.Year} • {movie.Runtime}
             </p>
 
             <div className="details-highlights">
-              <span className="details-pill">⭐ IMDb: {movie.imdbRating || 'N/A'}</span>
-              <span className="details-pill">🎬 Director: {movie.Director || 'N/A'}</span>
-              <span className="details-pill">🏷️ Genre: {movie.Genre || 'N/A'}</span>
+              <span className="details-pill"> IMDb: {movie.imdbRating || 'N/A'}</span>
+              <span className="details-pill"> Director: {movie.Director || 'N/A'}</span>
+              <span className="details-pill"> Genre: {movie.Genre || 'N/A'}</span>
             </div>
 
             <p className="details-plot">{movie.Plot || 'No plot available.'}</p>
@@ -65,20 +56,12 @@ function MovieDetailsPage() {
                 <dd>{movie.Actors || 'N/A'}</dd>
               </div>
               <div>
-                <dt>Language</dt>
-                <dd>{movie.Language || 'N/A'}</dd>
-              </div>
-              <div>
                 <dt>Country</dt>
                 <dd>{movie.Country || 'N/A'}</dd>
               </div>
               <div>
                 <dt>Awards</dt>
                 <dd>{movie.Awards || 'N/A'}</dd>
-              </div>
-              <div>
-                <dt>Box office</dt>
-                <dd>{movie.BoxOffice || 'N/A'}</dd>
               </div>
               <div>
                 <dt>Released</dt>

@@ -1,22 +1,10 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import MovieCard from '../components/MovieCard'
 import SearchBar from '../components/SearchBar'
-import { fetchMovieById, fetchMoviesBySearch } from '../services/api'
+import useAsyncState from '../hooks/useAsyncState'
+import { fetchMoviesBySearch } from '../services/api'
 import './HomePage.css'
-
-const featuredMoviePool = [
-  'tt0111161',
-  'tt0068646',
-  'tt0468569',
-  'tt0133093',
-  'tt0109830',
-  'tt0167260',
-  'tt1375666',
-  'tt6751668',
-  'tt0120737',
-  'tt0110912',
-]
 
 const categoryPresets = [
   { label: 'Action', query: 'action' },
@@ -31,46 +19,44 @@ const categoryPresets = [
   { label: 'Romance', query: 'romance' },
 ]
 
-function getRandomIds(pool, count) {
-  return [...pool].sort(() => Math.random() - 0.5).slice(0, count)
-}
-
-function getRandomItems(items, count) {
+function pickRandom(items, count) {
   return [...items].sort(() => Math.random() - 0.5).slice(0, count)
 }
 
 function HomePage() {
   const [queryInput, setQueryInput] = useState('')
-  const [movies, setMovies] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
   const [isSearchMode, setIsSearchMode] = useState(false)
   const [activeCategory, setActiveCategory] = useState('')
   const location = useLocation()
 
-  const featuredIds = useMemo(() => getRandomIds(featuredMoviePool, 6), [])
+  const {
+    data: movies,
+    setData: setMovies,
+    loading,
+    error,
+    run,
+  } = useAsyncState([])
+
+  async function loadMovies({ query, nextSearchMode, nextActiveCategory = '', randomCount }) {
+    setIsSearchMode(nextSearchMode)
+    setActiveCategory(nextActiveCategory)
+
+    try {
+      const result = await run(() => fetchMoviesBySearch(query))
+      if (randomCount) {
+        setMovies(pickRandom(result, randomCount))
+      }
+    } catch {
+      setMovies([])
+    }
+  }
 
   useEffect(() => {
-    async function loadFeaturedMovies() {
-      try {
-        setLoading(true)
-        setError('')
-        setIsSearchMode(false)
-        setActiveCategory('')
+    const featuredCategory = pickRandom(categoryPresets, 1)[0]
+    loadMovies({ query: featuredCategory.query, nextSearchMode: false, randomCount: 8 })
+  }, [location.state?.resetHomeAt])
 
-        const results = await Promise.all(featuredIds.map((id) => fetchMovieById(id)))
-        setMovies(results)
-      } catch (err) {
-        setError(err.message)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    loadFeaturedMovies()
-  }, [featuredIds, location.state?.resetHomeAt])
-
-  async function handleSearch(event) {
+  function handleSearch(event) {
     event.preventDefault()
 
     const normalized = queryInput.trim()
@@ -78,36 +64,16 @@ function HomePage() {
       return
     }
 
-    try {
-      setLoading(true)
-      setError('')
-      setIsSearchMode(true)
-      setActiveCategory('')
-      const result = await fetchMoviesBySearch(normalized)
-      setMovies(result)
-    } catch (err) {
-      setError(err.message)
-      setMovies([])
-    } finally {
-      setLoading(false)
-    }
+    loadMovies({ query: normalized, nextSearchMode: true })
   }
 
-  async function handleCategoryClick(category) {
-    try {
-      setLoading(true)
-      setError('')
-      setIsSearchMode(true)
-      setActiveCategory(category.label)
-
-      const result = await fetchMoviesBySearch(category.query)
-      setMovies(getRandomItems(result, 8))
-    } catch (err) {
-      setError(err.message)
-      setMovies([])
-    } finally {
-      setLoading(false)
-    }
+  function handleCategoryClick(category) {
+    loadMovies({
+      query: category.query,
+      nextSearchMode: true,
+      nextActiveCategory: category.label,
+      randomCount: 8,
+    })
   }
 
   return (
