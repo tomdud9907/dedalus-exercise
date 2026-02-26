@@ -1,3 +1,4 @@
+import './SearchBar.css'
 function SearchIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" className="search-icon">

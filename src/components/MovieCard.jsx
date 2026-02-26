@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import './MovieCard.css'
 
 function MovieCard({ movie }) {
   const posterAvailable = movie.Poster && movie.Poster !== 'N/A'
