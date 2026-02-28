@@ -1,16 +1,99 @@
-# React + Vite
+# Mini IMDb (React + Vite)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A small movie discovery app built for an interview exercise.
 
-Currently, two official plugins are available:
+The app demonstrates:
+- **Form validation** (newsletter sign-up with duplicate check in `localStorage`)
+- **Multiple pages** (Home, Movie details, Newsletter)
+- **Responsive design** (mobile-friendly layout/components)
+- **API-driven data** (OMDb-powered movie search and details)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Tech stack
 
-## React Compiler
+- React 18
+- Vite 5
+- React Router DOM 6
+- Plain CSS (split by page/component)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Features
 
-## Expanding the ESLint configuration
+### Home page (`/`)
+- Search movies by title
+- Quick category chips (Action, Comedy, Drama, etc.)
+- Randomised featured picks
+- Movie cards with poster, year, type and details CTA
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Movie details (`/movie/:id`)
+- Full movie details from OMDb
+- Poster + highlighted metadata
+- Back navigation to Home
+
+### Newsletter (`/newsletter`)
+- Email + consent checkbox validation
+- Duplicate email protection
+- Data persisted in browser `localStorage`
+
+## Project structure
+
+```txt
+src/
+  components/
+    Navbar.jsx
+    Navbar.css
+    MovieCard.jsx
+    MovieCard.css
+    SearchBar.jsx
+    SearchBar.css
+  hooks/
+    useAsyncState.js
+  pages/
+    HomePage.jsx
+    HomePage.css
+    MovieDetailsPage.jsx
+    MovieDetailsPage.css
+    NewsletterPage.jsx
+    NewsletterPage.css
+  services/
+    omdbApi.js
+  styles/
+    base.css
+    layout.css
+```
+
+## Local setup
+
+### 1 Install dependencies
+
+```bash
+npm install
+```
+
+### 2 Configure environment
+
+Create `.env`:
+
+```env
+VITE_OMDB_API_KEY=your_real_key_here
+VITE_OMDB_BASE_URL=https://www.omdbapi.com
+```
+
+Get a free OMDb key at: https://www.omdbapi.com/apikey.aspx
+
+### 3 Run app
+
+```bash
+npm run dev
+```
+
+### 4 Build for production
+
+```bash
+npm run build
+npm run preview
+```
+
+## Notes
+
+- The project intentionally focuses on a clean front-end implementation for interview/demo purposes.
+- Newsletter persistence is client-side only (`localStorage`).
+- API key files are excluded from git via `.gitignore`.
